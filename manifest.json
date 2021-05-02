@@ -1,0 +1,25 @@
+{
+    "background": {
+        "scripts": [
+            "./scripts/background.js"
+        ]
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://twitter.com/*"
+            ],
+            "js": [
+                "./scripts/content.js"
+            ]
+        }
+    ],
+    "description": "Improve your Twitter life with bookmarks.",
+    "name": "Twitter Bookmarks",
+    "manifest_version": 2,
+    "permissions": [
+        "https://twitter.com/*",
+        "tabs"
+    ],
+    "version": "0.0.0"
+}

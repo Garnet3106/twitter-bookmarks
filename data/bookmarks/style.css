@@ -1,0 +1,77 @@
+div.tbm-bookmarks-index {
+    align-items: center;
+    border-bottom: 0.5px solid #ccc3;
+    display: flex;
+    height: 250px;
+    justify-content: center;
+    width: 100%;
+}
+
+div.tbm-bookmarks-index-wrapper {
+    align-items: center;
+    display: flex;
+    height: calc(100% - 40px);
+    justify-content: space-around;
+    margin: 20px;
+    width: calc(100% - 40px);
+}
+
+div.tbm-bookmarks-index-operation {
+    align-content: space-around;
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    width: 50px;
+}
+
+div.tbm-bookmarks-index-operation-item {
+    border-radius: 50%;
+    cursor: pointer;
+    height: 50px;
+    width: 50px;
+}
+
+div.tbm-bookmarks-index-operation-item:hover {
+    background-color: #192734;
+}
+
+div#tbmBookmarksIndexOpeItem_add {
+    background-image: url('./img/icons/operations/add.svg');
+}
+
+div.tbm-bookmarks-index-list {
+    background-color: #192734;
+    border-radius: 15px;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    width: calc(100% - 200px);
+}
+
+div.tbm-bookmarks-index-list::-webkit-scrollbar {
+    display: none;
+}
+
+div.tbm-bookmarks-index-list-item {
+    align-items: center;
+    border-bottom: 1px solid #ccc3;
+    cursor: pointer;
+    display: flex;
+    height: 40px;
+    justify-content: center;
+    width: 100%;
+}
+
+div.tbm-bookmarks-index-list-item:last-child {
+    border-bottom: none;
+}
+
+div.tbm-bookmarks-index-list-item:hover div.tbm-bookmarks-index-list-item-text {
+    text-decoration: underline;
+}
+
+div.tbm-bookmarks-index-list-item-text {
+    font-family: sans-serif;
+    color: #fff;
+    font-size: 15px;
+}
