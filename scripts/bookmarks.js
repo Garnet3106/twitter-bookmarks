@@ -73,6 +73,14 @@ function addBookmarkIndexSection(itemWrapper) {
 
     itemWrapper.insertBefore(section, itemWrapper.firstChild);
 
+    getBookmarkData()
+        .then((content) => {
+            alert(content);
+        })
+        .catch((path) => {
+            console.error('file load failed: ' + path);
+        });
+
     return section;
 }
 
@@ -286,41 +294,58 @@ function getBookmarkIndexSectionHTML() {
 }
 
 function getBookmarkData() {
-    let filePath = 'bookmarks.txt';
+    return new Promise((resolve, reject) => {
+        let filePath = 'bookmarks.txt';
 
-    chrome.runtime.getPackageDirectoryEntry((dirEntry) => {
-        dirEntry.getFile(filePath).file((file) => {
-            let reader = new FileReader();
+        chrome.runtime.getPackageDirectoryEntry((dirEntry) => {
+            dirEntry.getFile(filePath).file((file) => {
+                let reader = new FileReader();
 
-            reader.addEventListener('load', () => {
-                resolve();
-            });
+                reader.addEventListener('load', (event) => {
+                    resolve(event.result);
+                });
 
-            reader.addEventListener('error', () => {
+                reader.addEventListener('error', () => {
+                    reject(filePath);
+                });
+
+                reader.readAsText(file);
+            }, () => {
                 reject(filePath);
             });
-
-            reader.readAsText(file);
-        }, (err) => {
-
         });
     });
 }
 
 
-class BookmarkList {
+var BookmarkList = class {
     constructor() {
+        this.items = [];
     }
 
-    findItemsByMessage(msg) {}
+    addItem(item) {
+        this.items.push(item);
+    }
 
-    findItemsByUser(userID) {}
+    findItemsByText(text) {}
+
+    findItemsByTweetID() {}
+
+    findItemsByUserID(userID) {}
 
     findMediaItems() {}
 }
 
 
-class BookmarkListItem {
-    constructor() {
+var BookmarkListItem = class {
+    constructor(userID, userName, tweetID, timestamp, text, picURLs, videoURLs, isVote) {
+        this.userID = userID;
+        this.userName = userName;
+        this.tweetID = tweetID;
+        this.timestamp = timestamp;
+        this.text = text;
+        this.picURLs = picURLs;
+        this.videoURLs = videoURLs;
+        this.isVote = isVote;
     }
 }
