@@ -19,6 +19,7 @@
     "manifest_version": 2,
     "permissions": [
         "https://twitter.com/*",
+        "storage",
         "tabs"
     ],
     "version": "0.0.0",

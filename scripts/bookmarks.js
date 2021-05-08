@@ -1,6 +1,153 @@
+var ChromeStorage = class {
+    static clear(callback = () => {}) {
+        chrome.storage.local.clear(callback);
+    }
+
+    static get(keys, callback) {
+        chrome.storage.local.get(keys, callback);
+    }
+
+    static getJSON(keys, jsonKey = 'data') {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get(keys, (values) => {
+                if(chrome.runtime.lastError !== undefined) {
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+
+                if(Object.keys(values).length == 0) {
+                    reject('undefined storage key');
+                    return;
+                }
+
+                let jsonValues = {};
+
+                Object.keys(values).forEach((key) => {
+                    let json = null;
+
+                    try {
+                        json = JSON.parse(values[key]);
+                    } catch(err) {
+                        reject('json parsing error');
+                        return;
+                    }
+
+                    if(!(jsonKey in json)) {
+                        reject('unknown json key');
+                        return;
+                    }
+
+                    jsonValues[key] = json[jsonKey];
+                });
+
+                resolve(jsonValues);
+            });
+        });
+    }
+
+    static remove(key, callback = () => {}) {
+        chrome.storage.local.remove(key, callback);
+    }
+
+    static set(pairs, callback = () => {}) {
+        chrome.storage.local.set(pairs, callback);
+    }
+
+    static setJSON(pairs, jsonKey = 'data') {
+        return new Promise((resolve, reject) => {
+            Object.keys(pairs).forEach((key) => {
+                try {
+                    let data = {};
+                    data[jsonKey] = pairs[key];
+
+                    let rawJSON = JSON.stringify(data);
+                    pairs[key] = rawJSON;
+                } catch(err) {
+                    reject('json stringifying error');
+                }
+            });
+
+            chrome.storage.local.set(pairs, () => {
+                if(chrome.runtime.lastError !== undefined) {
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+
+                resolve();
+            });
+        });
+    }
+}
+
+ChromeStorage.clear();
+ChromeStorage.setJSON({folderIDs:["a","b"],a:"aa",b:"bb"});
+
+
+var BookmarkList = class {
+    constructor() {
+        this.folders = {};
+    }
+
+    addItem(item) {
+        this.folder.push(item);
+    }
+
+    findItemsByText(text) {}
+
+    findItemsByTweetID() {}
+
+    findItemsByUserID(userID) {}
+
+    findMediaItems() {}
+
+    load() {
+        ChromeStorage.getJSON('folderIDs')
+            .then((folderIDs) => {
+                ChromeStorage.getJSON(folderIDs['folderIDs'])
+                    .then((folderItems) => {
+                        this.folders = folderItems;
+                    })
+                    .catch((err) => {
+                        console.error(`Couldn't load bookmark folders: ${err}`);
+                    });
+            })
+            .catch((err) => {
+                console.error(`Couldn't load IDs of bookmark folders: ${err}`);
+            });
+    }
+
+    saveFolder(folderID) {
+        
+    }
+}
+
+
+var BookmarkListItem = class {
+    constructor(userID, userName, tweetID, timestamp, text, picURLs, videoURLs, isVote) {
+        this.userID = userID;
+        this.userName = userName;
+        this.tweetID = tweetID;
+        this.timestamp = timestamp;
+        this.text = text;
+        this.picURLs = picURLs;
+        this.videoURLs = videoURLs;
+        this.isVote = isVote;
+    }
+}
+
+
 bookmarkPageLoaded_bookmarksJS();
 
+
 function bookmarkPageLoaded_bookmarksJS() {
+    // ブックマークデータを取得
+
+    let bookmarkList = new BookmarkList();
+
+    bookmarkList.load();
+
+    // ブックマーク一覧のフレームを追加
+
     getBookmarkSection()
         .then((section) => {
             let itemWrapper = getBookmarkItemWrapper(section);
@@ -76,32 +223,12 @@ function addBookmarkIndexSection(itemWrapper) {
 
     itemWrapper.insertBefore(iframe, itemWrapper.firstChild);
 
-    readBookmarkList()
-        .then((list) => {
-            // alert(list.items);
-        })
-        .catch((path) => {
-            console.error('file load failed: ' + path);
-        });
-
     return iframe;
 }
 
-function readBookmarkList() {
+function setBookmarkItem() {
     return new Promise((resolve, reject) => {
-        let filePath = 'data/bookmarks.json';
-
-        readLocalDataFile(filePath)
-            .then((content) => {
-                let list = new BookmarkList();
-                list.load(content);
-                // alert('content: ' + content);
-
-                resolve(list);
-            })
-            .catch(() => {
-                reject(filePath);
-            });
+        
     });
 }
 
@@ -125,50 +252,4 @@ function readLocalDataFile(filePath) {
         xhr.send();
         xhr.abort();
     });
-}
-
-
-var BookmarkList = class {
-    constructor() {
-        this.items = [];
-    }
-
-    addItem(item) {
-        this.items.push(item);
-    }
-
-    findItemsByText(text) {}
-
-    findItemsByTweetID() {}
-
-    findItemsByUserID(userID) {}
-
-    findMediaItems() {}
-
-    load(rawJSON) {
-        let json = null;
-
-        try {
-            json = JSON.parse(rawJSON);
-        } catch(err) {
-            console.error('bookmark data load failed: json parse error');
-            return;
-        }
-
-        this.items = json.list;
-    }
-}
-
-
-var BookmarkListItem = class {
-    constructor(userID, userName, tweetID, timestamp, text, picURLs, videoURLs, isVote) {
-        this.userID = userID;
-        this.userName = userName;
-        this.tweetID = tweetID;
-        this.timestamp = timestamp;
-        this.text = text;
-        this.picURLs = picURLs;
-        this.videoURLs = videoURLs;
-        this.isVote = isVote;
-    }
 }
