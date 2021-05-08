@@ -1,3 +1,8 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
 div.tbm-bookmarks-index {
     align-items: center;
     border-bottom: 0.5px solid #ccc3;
@@ -24,19 +29,15 @@ div.tbm-bookmarks-index-operation {
     width: 50px;
 }
 
-div.tbm-bookmarks-index-operation-item {
+svg.tbm-bookmarks-index-operation-item {
     border-radius: 50%;
     cursor: pointer;
     height: 50px;
     width: 50px;
 }
 
-div.tbm-bookmarks-index-operation-item:hover {
+svg.tbm-bookmarks-index-operation-item:hover {
     background-color: #192734;
-}
-
-div#tbmBookmarksIndexOpeItem_add {
-    background-image: url('http://gant.work/tbm/bookmarks/img/icons/operations/add.svg');
 }
 
 div.tbm-bookmarks-index-list {
