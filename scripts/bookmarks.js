@@ -1,6 +1,6 @@
-bookmarkPageLoaded();
+bookmarkPageLoaded_bookmarksJS();
 
-function bookmarkPageLoaded() {
+function bookmarkPageLoaded_bookmarksJS() {
     getBookmarkSection()
         .then((section) => {
             let itemWrapper = getBookmarkItemWrapper(section);
@@ -73,9 +73,9 @@ function addBookmarkIndexSection(itemWrapper) {
 
     itemWrapper.insertBefore(section, itemWrapper.firstChild);
 
-    getBookmarkData()
-        .then((content) => {
-            alert(content);
+    readBookmarkList()
+        .then((list) => {
+            alert(list.items);
         })
         .catch((path) => {
             console.error('file load failed: ' + path);
@@ -293,27 +293,43 @@ function getBookmarkIndexSectionHTML() {
 `;
 }
 
-function getBookmarkData() {
+function readBookmarkList() {
     return new Promise((resolve, reject) => {
-        let filePath = 'bookmarks.txt';
+        let filePath = 'data/bookmarks.json';
 
-        chrome.runtime.getPackageDirectoryEntry((dirEntry) => {
-            dirEntry.getFile(filePath).file((file) => {
-                let reader = new FileReader();
+        readLocalDataFile(filePath)
+            .then((content) => {
+                let list = new BookmarkList();
+                list.load(content);
+                alert('content: ' + content);
 
-                reader.addEventListener('load', (event) => {
-                    resolve(event.result);
-                });
-
-                reader.addEventListener('error', () => {
-                    reject(filePath);
-                });
-
-                reader.readAsText(file);
-            }, () => {
+                resolve(list);
+            })
+            .catch(() => {
                 reject(filePath);
             });
+    });
+}
+
+function readLocalDataFile(filePath) {
+    return new Promise((resolve, reject) => {
+        let chromePath = chrome.runtime.getURL(filePath);
+        let xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('readystatechange', () => {
+            if(xhr.readyState == XMLHttpRequest.DONE) {
+                if(xhr.status != 200) {
+                    reject();
+                    return;
+                }
+
+                resolve(xhr.responseText);
+            }
         });
+
+        xhr.open('GET', chromePath, false);
+        xhr.send();
+        xhr.abort();
     });
 }
 
@@ -334,6 +350,19 @@ var BookmarkList = class {
     findItemsByUserID(userID) {}
 
     findMediaItems() {}
+
+    load(rawJSON) {
+        let json = null;
+
+        try {
+            json = JSON.parse(rawJSON);
+        } catch(err) {
+            console.error('bookmark data load failed: json parse error');
+            return;
+        }
+
+        this.items = json.list;
+    }
 }
 
 

@@ -36,7 +36,7 @@ div.tbm-bookmarks-index-operation-item:hover {
 }
 
 div#tbmBookmarksIndexOpeItem_add {
-    background-image: url('./img/icons/operations/add.svg');
+    background-image: url('http://gant.work/tbm/bookmarks/img/icons/operations/add.svg');
 }
 
 div.tbm-bookmarks-index-list {
