@@ -190,13 +190,14 @@ var BookmarkListItem = class {
 
 
 var bookmarkList = new BookmarkList();
+var selectedFolderID = '';
 
 
 bookmarkPageLoaded_bookmarksJS();
 
 
 function bookmarkPageLoaded_bookmarksJS() {
-    // ブックマークデータを取得
+    // ブックマークデータをロード
 
     // ChromeStorage.clear();
 
@@ -204,25 +205,38 @@ function bookmarkPageLoaded_bookmarksJS() {
         .then(() => {
             console.log('Bookmark data has been loaded:');
             console.log(bookmarkList.folderMap);
+
+            // ブックマーク一覧のフレームを追加
+
+            getBookmarkSection()
+                .then((section) => {
+                    let itemWrapper = getBookmarkItemWrapper(section);
+
+                    if(itemWrapper === null)
+                        return;
+
+                    let indexSection = addBookmarkIndexSection(itemWrapper);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
         })
         .catch((err) => {
             console.error(err);
         });
+}
 
-    // ブックマーク一覧のフレームを追加
+function addBookmarkSectionListItem(folderID, folderName) {
+    let list = document.getElementById('tbmBookmarksIndexList');
+    let newItem = document.createElement('div');
 
-    getBookmarkSection()
-        .then((section) => {
-            let itemWrapper = getBookmarkItemWrapper(section);
+    newItem.className = 'tbm-bookmarks-index-list-item';
+    newItem.id = 'tbmBookmarksIndexListItem_' + folderID;
+    newItem.innerHTML = `<div class="tbm-bookmarks-index-list-item-text">${folderName}</div>`
 
-            if(itemWrapper === null)
-                return;
+    list.insertBefore(newItem, list.firstChild);
 
-            let indexSection = addBookmarkIndexSection(itemWrapper);
-        })
-        .catch((err) => {
-            console.error(err);
-        });
+    return newItem;
 }
 
 function getBookmarkSection() {
@@ -323,12 +337,35 @@ function readLocalDataFile(filePath) {
     });
 }
 
+function selectBookmarkSectionListItem(elem) {
+    if(selectedFolderID !== '') {
+        let items = elem.parentNode.childNodes;
+
+        for(let i = 0; i < items.length; i++) {
+            if(items[i].className === 'tbm-bookmarks-index-list-item')
+                items[i].style.backgroundColor = '#192734';
+        }
+    }
+
+    elem.style.backgroundColor = '#fff3';
+
+    let folderID = elem.id.substring('tbmBookmarksIndexListItem_'.length);
+    selectedFolderID = folderID;
+
+    console.log(`Folder ${folderID} has been selected.`);
+}
+
 
 /* ブクマリストのアイコン操作 */
 
 
 function initBookmarkIndexSection(section) {
     setTimeout(() => {
+        Object.keys(bookmarkList.folderMap).forEach((key) => {
+            let item = bookmarkList.folderMap[key];
+            addBookmarkSectionListItem(item.id, item.name);
+        });
+
         let addOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_add');
 
         addOpeIcon.addEventListener('click', onAddOpeIconClick);
@@ -355,6 +392,9 @@ function onAddOpeIconClick() {
     bookmarkList.save(folder.id)
         .then(() => {
             console.log(`Folder ${folder.id} has saved.`);
+
+            let newItem = addBookmarkSectionListItem(folder.id, folder.name);
+            selectBookmarkSectionListItem(newItem);
         })
         .catch((err) => {
             console.error(err);
@@ -391,5 +431,5 @@ function onFolderItemClick(event) {
     if(target.className == 'tbm-bookmarks-index-list-item-text')
         target = target.parentNode;
 
-    
+    selectBookmarkSectionListItem(target);
 }
