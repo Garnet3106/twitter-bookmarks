@@ -107,10 +107,6 @@ var BookmarkList = class {
                 .then((folderIDs) => {
                     ChromeStorage.getJSON(folderIDs['folderIDs'])
                         .then((folders) => {
-                            console.log('Storage data has been loaded from the storage:');
-                            console.log(folderIDs);
-                            console.log(folders);
-
                             this.folderMap = folders;
                             resolve();
                         })
@@ -149,15 +145,16 @@ var BookmarkList = class {
 
 
 var BookmarkFolder = class {
-    constructor(id, name, createdAt, items) {
+    constructor(id, name, password, createdAt, items) {
         this.id = id;
         this.name = name;
+        this.password = password;
         this.createdAt = createdAt;
         this.items = items;
     }
 
-    static createNew(name) {
-        return new BookmarkFolder(BookmarkList.generateRandomID(), name, BookmarkFolder.getTimestamp(), []);
+    static createNew(name, password) {
+        return new BookmarkFolder(BookmarkList.generateRandomID(), name, password, BookmarkFolder.getTimestamp(), []);
     }
 
     static getTimestamp() {
@@ -192,6 +189,9 @@ var BookmarkListItem = class {
 }
 
 
+var bookmarkList = new BookmarkList();
+
+
 bookmarkPageLoaded_bookmarksJS();
 
 
@@ -200,30 +200,10 @@ function bookmarkPageLoaded_bookmarksJS() {
 
     // ChromeStorage.clear();
 
-    let bookmarkList = new BookmarkList();
-
     bookmarkList.load()
         .then(() => {
-            console.log('loaded folders');
-            console.log(bookmarkList);
-
-            let folder = BookmarkFolder.createNew('foldername');
-
-            console.log('new folder');
-            console.log(folder);
-
-            bookmarkList.addFolder(folder);
-
-            console.log('after added');
-            console.log(bookmarkList);
-
-            bookmarkList.save(folder.id)
-                .then(() => {
-                    console.log(`Folder ${folder.id} has saved.`);
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
+            console.log('Bookmark data has been loaded:');
+            console.log(bookmarkList.folderMap);
         })
         .catch((err) => {
             console.error(err);
@@ -289,24 +269,36 @@ function getBookmarkItemWrapper(section) {
 }
 
 function addBookmarkIndexSection(itemWrapper) {
-    let iframeID = 'tbmBookmarksIndexSection';
+    let sectionID = 'tbmBookmarksIndexSection';
 
-    if(document.getElementById(iframeID) !== null)
+    if(document.getElementById(sectionID) !== null)
         return;
 
-    // add iframe element
+    // add section element
 
     let htmlFilePath = 'data/section/index.html';
+    let styleFilePath = 'data/section/style.css';
 
-    let iframe = document.createElement('iframe');
+    let section = document.createElement('section');
 
-    iframe.id = iframeID;
-    iframe.src = chrome.runtime.getURL(htmlFilePath);
-    iframe.style = 'border: 0; height: 250.5px; width: 100%;';
+    section.id = sectionID;
+    section.style = 'height: 250.5px; overflow-y: hidden; width: 100%;';
 
-    itemWrapper.insertBefore(iframe, itemWrapper.firstChild);
+    readLocalDataFile(htmlFilePath)
+        .then((content) => {
+            let styleCode = `<link rel="stylesheet" href="${chrome.runtime.getURL(styleFilePath)}">`;
 
-    return iframe;
+            section.innerHTML = styleCode + content;
+
+            itemWrapper.insertBefore(section, itemWrapper.firstChild);
+
+            initBookmarkIndexSection(section);
+        })
+        .catch(() => {
+            console.error('Failed to load HTML data.');
+        });
+
+    return section;
 }
 
 function readLocalDataFile(filePath) {
@@ -329,4 +321,60 @@ function readLocalDataFile(filePath) {
         xhr.send();
         xhr.abort();
     });
+}
+
+
+/* ブクマリストのアイコン操作 */
+
+
+function initBookmarkIndexSection(section) {
+    setTimeout(() => {
+        let addOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_add');
+        addOpeIcon.addEventListener('click', onAddOpeIconClick);
+    }, 1000);
+}
+
+function onAddOpeIconClick() {
+    let data = getNewFolderData();
+
+    if(data === null) {
+        console.log('Creating new folder has been canceled.');
+        return;
+    }
+
+    let folder = BookmarkFolder.createNew(data.name, data.password);
+
+    bookmarkList.addFolder(folder);
+
+    bookmarkList.save(folder.id)
+        .then(() => {
+            console.log(`Folder ${folder.id} has saved.`);
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
+
+function getNewFolderData() {
+    let name = prompt('フォルダ名を入力してください。', '新しいフォルダ');
+    let password = '';
+
+    if(name === null)
+        return null;
+
+    if(name === '') {
+        getNewFolderData();
+        return null;
+    }
+
+    if(confirm('パスワードを設定しますか？'))
+        password = prompt('パスワードを入力してください。\n\n※ パスワードはセキュリティ保護を受けません ※');
+
+    if(password === null)
+        password = '';
+
+    return {
+        name: name,
+        password: password
+    };
 }
