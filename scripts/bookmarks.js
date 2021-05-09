@@ -330,7 +330,13 @@ function readLocalDataFile(filePath) {
 function initBookmarkIndexSection(section) {
     setTimeout(() => {
         let addOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_add');
+
         addOpeIcon.addEventListener('click', onAddOpeIconClick);
+
+        let folderItems = document.getElementsByClassName('tbm-bookmarks-index-list-item');
+
+        for(let i = 0; i < folderItems.length; i++)
+            folderItems[i].addEventListener('click', onFolderItemClick);
     }, 1000);
 }
 
@@ -377,4 +383,13 @@ function getNewFolderData() {
         name: name,
         password: password
     };
+}
+
+function onFolderItemClick(event) {
+    let target = event.target;
+
+    if(target.className == 'tbm-bookmarks-index-list-item-text')
+        target = target.parentNode;
+
+    
 }
