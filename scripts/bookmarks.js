@@ -79,17 +79,14 @@ var ChromeStorage = class {
     }
 }
 
-ChromeStorage.clear();
-ChromeStorage.setJSON({folderIDs:["a","b"],a:"aa",b:"bb"});
-
 
 var BookmarkList = class {
     constructor() {
-        this.folders = {};
+        this.folderMap = {};
     }
 
-    addItem(item) {
-        this.folder.push(item);
+    addFolder(folder) {
+        this.folderMap[folder.id] = folder;
     }
 
     findItemsByText(text) {}
@@ -100,38 +97,97 @@ var BookmarkList = class {
 
     findMediaItems() {}
 
-    load() {
-        ChromeStorage.getJSON('folderIDs')
-            .then((folderIDs) => {
-                ChromeStorage.getJSON(folderIDs['folderIDs'])
-                    .then((folderItems) => {
-                        this.folders = folderItems;
-                    })
-                    .catch((err) => {
-                        console.error(`Couldn't load bookmark folders: ${err}`);
-                    });
-            })
-            .catch((err) => {
-                console.error(`Couldn't load IDs of bookmark folders: ${err}`);
-            });
+    static generateRandomID() {
+        return Math.random().toString(32).substring(2);
     }
 
-    saveFolder(folderID) {
-        
+    load() {
+        return new Promise((resolve, reject) => {
+            ChromeStorage.getJSON('folderIDs')
+                .then((folderIDs) => {
+                    ChromeStorage.getJSON(folderIDs['folderIDs'])
+                        .then((folders) => {
+                            console.log('Storage data has been loaded from the storage:');
+                            console.log(folderIDs);
+                            console.log(folders);
+
+                            this.folderMap = folders;
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(`Couldn't load bookmark folders: ${err}`);
+                        });
+                })
+                .catch((err) => {
+                    reject(`Couldn't load bookmark folders: ${err}`);
+                });
+        });
+    }
+
+    save(folderID) {
+        return new Promise((resolve, reject) => {
+            let pairs = {};
+
+            if(!(folderID in this.folderMap)) {
+                reject(`Couldn't save folder: folder ${folderID} not found`);
+                return;
+            }
+
+            pairs['folderIDs'] = Object.keys(this.folderMap);
+            pairs[folderID] = this.folderMap[folderID];
+
+            ChromeStorage.setJSON(pairs)
+                .then(() => {
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    }
+}
+
+
+var BookmarkFolder = class {
+    constructor(id, name, createdAt, items) {
+        this.id = id;
+        this.name = name;
+        this.createdAt = createdAt;
+        this.items = items;
+    }
+
+    static createNew(name) {
+        return new BookmarkFolder(BookmarkList.generateRandomID(), name, BookmarkFolder.getTimestamp(), []);
+    }
+
+    static getTimestamp() {
+        return Math.floor(Date.now() / 1000);
+    }
+
+    remove() {
+        ChromeStorage.remove(this.folderID)
+            .then(() => {
+                console.log(`Folder ${this.folderID} has been removed.`)
+            });
     }
 }
 
 
 var BookmarkListItem = class {
-    constructor(userID, userName, tweetID, timestamp, text, picURLs, videoURLs, isVote) {
+    constructor(addedAt, userID, userName, tweetID, tweetedAt, text, picURLs, videoURLs, isVote) {
+        this.addedAt = addedAt;
         this.userID = userID;
         this.userName = userName;
         this.tweetID = tweetID;
-        this.timestamp = timestamp;
+        this.tweetedAt = tweetedAt;
         this.text = text;
         this.picURLs = picURLs;
         this.videoURLs = videoURLs;
         this.isVote = isVote;
+    }
+
+    static createNew(userID, userName, tweetID, tweetedAt, text, picURLs, videoURLs, isVote) {
+        return new BookmarkListItem(BookmarkList.generateRandomID(), userID, userName, tweetID, tweetedAt, text, picURLs, videoURLs, isVote);
     }
 }
 
@@ -142,9 +198,36 @@ bookmarkPageLoaded_bookmarksJS();
 function bookmarkPageLoaded_bookmarksJS() {
     // ブックマークデータを取得
 
+    // ChromeStorage.clear();
+
     let bookmarkList = new BookmarkList();
 
-    bookmarkList.load();
+    bookmarkList.load()
+        .then(() => {
+            console.log('loaded folders');
+            console.log(bookmarkList);
+
+            let folder = BookmarkFolder.createNew('foldername');
+
+            console.log('new folder');
+            console.log(folder);
+
+            bookmarkList.addFolder(folder);
+
+            console.log('after added');
+            console.log(bookmarkList);
+
+            bookmarkList.save(folder.id)
+                .then(() => {
+                    console.log(`Folder ${folder.id} has saved.`);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
 
     // ブックマーク一覧のフレームを追加
 
@@ -224,12 +307,6 @@ function addBookmarkIndexSection(itemWrapper) {
     itemWrapper.insertBefore(iframe, itemWrapper.firstChild);
 
     return iframe;
-}
-
-function setBookmarkItem() {
-    return new Promise((resolve, reject) => {
-        
-    });
 }
 
 function readLocalDataFile(filePath) {
