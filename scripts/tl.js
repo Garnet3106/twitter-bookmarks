@@ -64,20 +64,7 @@ function onTLSectionChange(event) {
         if(article.hasAttribute(articleAttrName))
             return;
 
-        let iconArea = getTweetIconArea(article);
-
-        let iconItem = document.createElement('div');
-
-        iconItem.className = 
-
-        let img = document.createElement('img');
-
-        img.height = '18.75'
-        img.src = chrome.runtime.getURL('data/section/bookmark.svg');
-        img.style.marginLeft = '15px'
-        img.width = '18.75';
-
-        iconArea.appendChild(img);
+        addTweetBookmarkIcon(article);
 
         article.setAttribute(articleAttrName, '');
     }
@@ -90,4 +77,21 @@ function getTweetIconArea(article) {
         iconArea = iconArea.parentNode;
 
     return iconArea;
+}
+
+function addTweetBookmarkIcon(article) {
+    let iconArea = getTweetIconArea(article);
+
+    let iconItem = document.createElement('div');
+
+    iconItem.className = 'tbm-tweet-bookmark-icon';
+
+    let img = document.createElement('img');
+
+    img.height = '15';
+    img.src = chrome.runtime.getURL('data/section/bookmark.svg');
+    img.width = '15';
+
+    iconItem.appendChild(img);
+    iconArea.appendChild(iconItem);
 }
