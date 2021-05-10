@@ -113,7 +113,10 @@ var BookmarkList = class {
 
                     ChromeStorage.getJSON(folderIDs['folderIDs'])
                         .then((folders) => {
-                            this.folderMap = folders;
+                            Object.keys(folders).forEach((folderID) => {
+                                this.folderMap[folderID] = BookmarkFolder.getByAssoc(folders[folderID]);
+                            });
+
                             resolve();
                         })
                         .catch((err) => {
@@ -130,6 +133,11 @@ var BookmarkList = class {
     removeFolder(folderID) {
         delete this.folderMap[folderID];
         return this.saveRemovingFolder(folderID);
+    }
+
+    replaceFolder(newFolderData) {
+        this.folderMap[newFolderData.id] = newFolderData;
+        return this.saveModifyingFolder(newFolderData.id);
     }
 
     // 追加, 編集操作の保存
@@ -193,15 +201,17 @@ var BookmarkFolder = class {
         return new BookmarkFolder(BookmarkList.generateRandomID(), name, password, BookmarkFolder.getTimestamp(), []);
     }
 
-    static getTimestamp() {
-        return Math.floor(Date.now() / 1000);
+    edit(name, password) {
+        this.name = name;
+        this.password = password;
     }
 
-    remove() {
-        ChromeStorage.remove(this.folderID)
-            .then(() => {
-                console.log(`Folder ${this.folderID} has been removed.`)
-            });
+    static getByAssoc(assoc) {
+        return new BookmarkFolder(assoc.id, assoc.name, assoc.password, assoc.createdAt, assoc.items);
+    }
+
+    static getTimestamp() {
+        return Math.floor(Date.now() / 1000);
     }
 }
 
@@ -275,6 +285,16 @@ function addBookmarkSectionListItem(folderID, folderName) {
     list.insertBefore(newItem, list.firstChild);
 
     return newItem;
+}
+
+function editBookmarkSectionListItem(folderID, folderName) {
+    let item = document.getElementById('tbmBookmarksIndexListItem_' + folderID);
+
+    if(item === null)
+        return;
+
+    let itemText = item.getElementsByClassName('tbm-bookmarks-index-list-item-text')[0];
+    itemText.innerText = folderName;
 }
 
 function removeBookmarkSectionListItem(folderID) {
@@ -419,6 +439,12 @@ function initBookmarkIndexSection(section) {
 
         addOpeIcon.addEventListener('click', onAddOpeIconClick);
 
+        // edit ope icon
+
+        let editOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_edit');
+
+        editOpeIcon.addEventListener('click', onEditOpeIconClick);
+
         // rem ope icon
 
         let remOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_rem');
@@ -446,10 +472,32 @@ function onAddOpeIconClick() {
 
     bookmarkList.addFolder(folder)
         .then(() => {
-            console.log(`Folder ${folder.id} has saved.`);
+            console.log(`Folder ${folder.id} has been added.`);
 
             let newItem = addBookmarkSectionListItem(folder.id, folder.name);
             selectBookmarkSectionListItem(newItem);
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
+
+function onEditOpeIconClick() {
+    if(selectedFolderID === '') {
+        alert('フォルダが選択されていません。');
+        return;
+    }
+
+    let data = getNewFolderData();
+
+    let newFolderData = bookmarkList.folderMap[selectedFolderID];
+    newFolderData.edit(data.name, data.password);
+
+    bookmarkList.replaceFolder(newFolderData)
+        .then(() => {
+            console.log(`Folder ${newFolderData.id} has been modified.`);
+
+            editBookmarkSectionListItem(newFolderData.id, newFolderData.name);
         })
         .catch((err) => {
             console.error(err);
@@ -485,8 +533,7 @@ function getNewFolderData() {
         return null;
 
     if(name === '') {
-        getNewFolderData();
-        return null;
+        return getNewFolderData();
     }
 
     if(confirm('パスワードを設定しますか？'))
