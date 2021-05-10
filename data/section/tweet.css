@@ -1,0 +1,13 @@
+div.tbm-tweet-bookmark-icon {
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    margin-left: 15px;
+    padding: 10px;
+}
+
+div.tbm-tweet-bookmark-icon:hover {
+    background-color: #ccc3;
+}

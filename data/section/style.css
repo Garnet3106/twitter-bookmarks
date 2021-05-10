@@ -76,16 +76,3 @@ div.tbm-bookmarks-index-list-item-text {
     color: #fff;
     font-size: 15px;
 }
-
-div.tbm-tweet-bookmark-icon {
-    align-items: center;
-    border-radius: 50%;
-    display: inline-flex;
-    justify-content: center;
-    margin-left: 15px;
-    padding: 10px;
-}
-
-div.tbm-tweet-bookmark-icon:hover {
-    background-color: #ccc3;
-}

@@ -2,6 +2,8 @@ tlPageLoaded();
 
 
 function tlPageLoaded() {
+    addCSSLink();
+
     let tweetObserver = new MutationObserver(onTLSectionChange);
 
     getTLSection()
@@ -77,6 +79,21 @@ function getTweetIconArea(article) {
         iconArea = iconArea.parentNode;
 
     return iconArea;
+}
+
+function addCSSLink() {
+    let linkID = 'tbmTweetStyle'
+
+    if(document.getElementById(linkID) !== null)
+        return;
+
+    let link = document.createElement('link');
+
+    link.href = chrome.runtime.getURL('./data/section/tweet.css');
+    link.id = linkID;
+    link.rel = 'stylesheet';
+
+    document.head.appendChild(link);
 }
 
 function addTweetBookmarkIcon(article) {
