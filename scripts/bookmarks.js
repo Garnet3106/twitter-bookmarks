@@ -239,10 +239,10 @@ var bookmarkList = new BookmarkList();
 var selectedFolderID = '';
 
 
-bookmarkPageLoaded_bookmarksJS();
+bookmarkPageLoaded();
 
 
-function bookmarkPageLoaded_bookmarksJS() {
+function bookmarkPageLoaded() {
     // ブックマークデータをロード
 
     // ChromeStorage.clear();

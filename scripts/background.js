@@ -1,7 +1,15 @@
 chrome.tabs.onUpdated.addListener((tabID, info, tab) => {
-    if(info.status === 'complete' && tab.url.startsWith('https://twitter.com/i/bookmarks')) {
-        chrome.tabs.executeScript(null, {
-            file: './scripts/bookmarks.js'
-        }, () => {});
+    if(info.status === 'complete') {
+        if(tab.url.startsWith('https://twitter.com/i/bookmarks')) {
+            chrome.tabs.executeScript(null, {
+                file: './scripts/bookmarks.js'
+            }, () => {});
+        }
+
+        if(tab.url.startsWith('https://twitter.com')) {
+            chrome.tabs.executeScript(null, {
+                file: './scripts/tl.js'
+            }, () => {});
+        }
     }
 });
