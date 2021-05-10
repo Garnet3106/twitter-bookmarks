@@ -87,6 +87,7 @@ var BookmarkList = class {
 
     addFolder(folder) {
         this.folderMap[folder.id] = folder;
+        return this.saveModifyingFolder(folder.id);
     }
 
     findItemsByText(text) {}
@@ -105,6 +106,11 @@ var BookmarkList = class {
         return new Promise((resolve, reject) => {
             ChromeStorage.getJSON('folderIDs')
                 .then((folderIDs) => {
+                    if(Object.keys(folderIDs['folderIDs']).length === 0) {
+                        resolve();
+                        return;
+                    }
+
                     ChromeStorage.getJSON(folderIDs['folderIDs'])
                         .then((folders) => {
                             this.folderMap = folders;
@@ -115,12 +121,19 @@ var BookmarkList = class {
                         });
                 })
                 .catch((err) => {
-                    reject(`Couldn't load bookmark folders: ${err}`);
+                    // folderIDs 値が読み込めない場合はフォルダが存在しない状態として扱う
+                    resolve();
                 });
         });
     }
 
-    save(folderID) {
+    removeFolder(folderID) {
+        delete this.folderMap[folderID];
+        return this.saveRemovingFolder(folderID);
+    }
+
+    // 追加, 編集操作の保存
+    saveModifyingFolder(folderID) {
         return new Promise((resolve, reject) => {
             let pairs = {};
 
@@ -135,6 +148,29 @@ var BookmarkList = class {
             ChromeStorage.setJSON(pairs)
                 .then(() => {
                     resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    }
+
+    // 削除操作の保存
+    saveRemovingFolder(folderID) {
+        return new Promise((resolve, reject) => {
+            let pairs = {};
+            pairs['folderIDs'] = Object.keys(this.folderMap);
+
+            ChromeStorage.setJSON(pairs)
+                .then(() => {
+                    ChromeStorage.remove(folderID, () => {
+                        if(chrome.runtime.lastError !== undefined) {
+                            reject(chrome.runtime.lastError);
+                            return;
+                        }
+
+                        resolve();
+                    });
                 })
                 .catch((err) => {
                     reject(err);
@@ -234,9 +270,20 @@ function addBookmarkSectionListItem(folderID, folderName) {
     newItem.id = 'tbmBookmarksIndexListItem_' + folderID;
     newItem.innerHTML = `<div class="tbm-bookmarks-index-list-item-text">${folderName}</div>`
 
+    newItem.addEventListener('click', onFolderItemClick);
+
     list.insertBefore(newItem, list.firstChild);
 
     return newItem;
+}
+
+function removeBookmarkSectionListItem(folderID) {
+    let item = document.getElementById('tbmBookmarksIndexListItem_' + folderID);
+
+    if(item === null)
+        return;
+
+    item.remove();
 }
 
 function getBookmarkSection() {
@@ -366,9 +413,19 @@ function initBookmarkIndexSection(section) {
             addBookmarkSectionListItem(item.id, item.name);
         });
 
+        // add ope icon
+
         let addOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_add');
 
         addOpeIcon.addEventListener('click', onAddOpeIconClick);
+
+        // rem ope icon
+
+        let remOpeIcon = document.getElementById('tbmBookmarksIndexOpeItem_rem');
+
+        remOpeIcon.addEventListener('click', onRemOpeIconClick);
+
+        // folder items
 
         let folderItems = document.getElementsByClassName('tbm-bookmarks-index-list-item');
 
@@ -387,9 +444,7 @@ function onAddOpeIconClick() {
 
     let folder = BookmarkFolder.createNew(data.name, data.password);
 
-    bookmarkList.addFolder(folder);
-
-    bookmarkList.save(folder.id)
+    bookmarkList.addFolder(folder)
         .then(() => {
             console.log(`Folder ${folder.id} has saved.`);
 
@@ -398,6 +453,27 @@ function onAddOpeIconClick() {
         })
         .catch((err) => {
             console.error(err);
+        });
+}
+
+function onRemOpeIconClick() {
+    if(selectedFolderID === '') {
+        alert('フォルダが選択されていません。');
+        return;
+    }
+
+    if(!confirm('本当に削除しますか？'))
+        return;
+
+    bookmarkList.removeFolder(selectedFolderID)
+        .then(() => {
+            removeBookmarkSectionListItem(selectedFolderID);
+            selectedFolderID = '';
+
+            alert('フォルダが削除されました。');
+        })
+        .catch((err) => {
+            alert('フォルダの削除に失敗しました。');
         });
 }
 
