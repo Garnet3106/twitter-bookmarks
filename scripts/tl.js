@@ -4,19 +4,11 @@ tlPageLoaded();
 function tlPageLoaded() {
     addCSSLink();
 
-    let tweetObserver = new MutationObserver(onTLSectionChange);
-
     getTLSection()
         .then((section) => {
-            tweetObserver.observe(section, {
-                characterData: true,
-                childList: true,
-                subtree: true
-            });
-
-            // setInterval(() => {
-            //     console.log(document.getElementsByTagName('article').length)
-            // }, 1000);
+            setInterval(() => {
+                scanTLTweet(section);
+            }, 500);
         })
         .catch((err) => {
             console.log(`Couldn't get the TL section: ${err}`);
@@ -48,23 +40,15 @@ function getTLSection() {
     });
 }
 
-function onTLSectionChange(event) {
-    let target = event[0].target;
-
-    if(Object.prototype.toString.call(target) !== "[object HTMLDivElement]")
-        return;
-
-    let articleList = target.getElementsByTagName('article');
+function scanTLTweet(section) {
+    let articleList = section.getElementsByTagName('article');
     let articleAttrName = 'tbmscanned';
-
-    if(articleList.length === 0)
-        return;
 
     for(let i = 0; i < articleList.length; i++) {
         let article = articleList[i];
 
         if(article.hasAttribute(articleAttrName))
-            return;
+            continue;
 
         addTweetBookmarkIcon(article);
 
@@ -73,10 +57,15 @@ function onTLSectionChange(event) {
 }
 
 function getTweetIconArea(article) {
-    let iconArea = article.getElementsByTagName('svg')[4];
+    let defaultIcons = article.getElementsByTagName('svg');
+    let iconArea = defaultIcons[defaultIcons.length - 1];
 
-    for(let i = 0; i < 5; i++)
+    for(let i = 0; i < 5; i++) {
+        if(iconArea === undefined)
+            return null;
+
         iconArea = iconArea.parentNode;
+    }
 
     return iconArea;
 }
@@ -98,6 +87,11 @@ function addCSSLink() {
 
 function addTweetBookmarkIcon(article) {
     let iconArea = getTweetIconArea(article);
+
+    if(iconArea === null) {
+        console.error('Couldn\'t load default tweet icons.');
+        return;
+    }
 
     let iconItem = document.createElement('div');
 
