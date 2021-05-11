@@ -1,18 +1,22 @@
+var haveKeyEventsSet = false;
+
+
 tlPageLoaded();
 
 
 function tlPageLoaded() {
     addCSSLink();
 
-    getTLSection()
-        .then((section) => {
-            setInterval(() => {
-                scanTLTweet(section);
-            }, 500);
-        })
-        .catch((err) => {
-            console.log(`Couldn't get the TL section: ${err}`);
-        });
+    if(!haveKeyEventsSet) {
+        getTLSection()
+            .then((section) => {
+                setBookmarkIconKeyEvents(section);
+                haveKeyEventsSet = true;
+            })
+            .catch((err) => {
+                console.log(`Couldn't get the TL section: ${err}`);
+            });
+    }
 }
 
 function getTLSection() {
@@ -40,20 +44,50 @@ function getTLSection() {
     });
 }
 
-function scanTLTweet(section) {
-    let articleList = section.getElementsByTagName('article');
-    let articleAttrName = 'tbmscanned';
+function setBookmarkIconKeyEvents(section) {
+    let ctrlKeyDown = false;
 
-    for(let i = 0; i < articleList.length; i++) {
-        let article = articleList[i];
+    document.body.addEventListener('keydown', (event) => {
+        if(ctrlKeyDown)
+            return;
 
-        if(article.hasAttribute(articleAttrName))
-            continue;
+        if(!event.ctrlKey)
+            return;
 
-        addTweetBookmarkIcon(article);
+            console.log('down');
+        console.log(ctrlKeyDown);
+        console.log(event.ctrlKey)
 
-        article.setAttribute(articleAttrName, '');
-    }
+        // let articleList = section.getElementsByTagName('article');
+
+        // for(let i = 0; i < articleList.length; i++) {
+        //     let article = articleList[i];
+
+        //     addTweetBookmarkIcon(article);
+        // }
+
+        ctrlKeyDown = true;
+    });
+
+    document.body.addEventListener('keyup', (event) => {
+        if(!ctrlKeyDown)
+            return;
+
+        if(event.ctrlKey)
+            return;
+
+            console.log('up');
+        console.log(ctrlKeyDown);
+        console.log(event.ctrlKey)
+
+        // let icons = section.getElementsByClassName('tbm-tweet-bookmark-icon');
+
+        // console.log(icons);
+        // for(let i = 0; i < icons; i++)
+        //     icons[i].parentNode.removeChild(icons[i]);
+
+        ctrlKeyDown = false;
+    });
 }
 
 function getTweetIconArea(article) {
