@@ -97,6 +97,8 @@ function addTweetBookmarkIcon(article) {
 
     iconItem.className = 'tbm-tweet-bookmark-icon';
 
+    iconItem.addEventListener('click', onTweetBookmarkIconClick);
+
     let img = document.createElement('img');
 
     img.height = '15';
@@ -105,4 +107,20 @@ function addTweetBookmarkIcon(article) {
 
     iconItem.appendChild(img);
     iconArea.appendChild(iconItem);
+}
+
+function onTweetBookmarkIconClick(event) {
+    let target = event.target;
+
+    if(target.tagName === 'IMG')
+        target = target.parentNode;
+
+    let list = document.createElement('div');
+
+    list.className = 'tbm-tweet-bookmark-list';
+    list.innerHTML = 'aa<div class="tbm-tweet-bookmark-list-item"><div class="tbm-tweet-bookmark-list-item-text">foldername</div></div>';
+
+    target.parentNode.appendChild(list);
+
+    event.preventDefault();
 }

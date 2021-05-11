@@ -6,8 +6,32 @@ div.tbm-tweet-bookmark-icon {
     justify-content: center;
     margin-left: 15px;
     padding: 10px;
+    user-select: none;
 }
 
 div.tbm-tweet-bookmark-icon:hover {
     background-color: #ccc3;
+}
+
+div.tbm-tweet-bookmark-list {
+    background-color: #15202b;
+    display: flex;
+    flex-wrap: wrap;
+    position: absolute;
+    right: 0;
+    width: 150px;
+    z-index: 100000;
+}
+
+div.tbm-tweet-bookmark-list-item {
+    align-items: center;
+    display: flex;
+    height: 50px;
+    justify-content: center;
+    width: 100%;
+}
+
+div.tbm-tweet-bookmark-list-item-text {
+    color: #fff;
+    font-size: 15px;
 }
