@@ -8,6 +8,7 @@ chrome.tabs.query({
 
 chrome.tabs.onUpdated.addListener((tabID, info, tab) => {
     if(info.status === 'complete')
+        // イベントハンドラが重複 + 競合しないように tl.js を無視する
         executeScripts(tab.url);
 });
 
