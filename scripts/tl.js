@@ -1,3 +1,7 @@
+var isIconShowed = false;
+var iconElems = [];
+
+
 tlPageLoaded();
 
 
@@ -48,9 +52,6 @@ function getTLSection() {
 }
 
 function setBookmarkIconKeyEvents(section) {
-    let iconElems = [];
-    let isIconShowed = false;
-
     document.body.onkeydown = (event) => {
         if(event.key !== 'Control')
             return;
@@ -134,6 +135,18 @@ function addTweetBookmarkIcon(article) {
     return iconItem;
 }
 
+function removeAllTweetBookmarkIcons() {
+    for(let i = 0; i < iconElems.length; i++) {
+        if(iconElems[i] === null)
+            continue;
+
+        iconElems[i].parentNode.style.alignItems = 'flex-start';
+        iconElems[i].remove();
+    }
+
+    isIconShowed = false;
+}
+
 function onTweetBookmarkIconClick(event) {
     let target = event.target;
 
@@ -143,9 +156,11 @@ function onTweetBookmarkIconClick(event) {
     let list = document.createElement('div');
 
     list.className = 'tbm-tweet-bookmark-list';
-    list.innerHTML = 'aa<div class="tbm-tweet-bookmark-list-item"><div class="tbm-tweet-bookmark-list-item-text">foldername</div></div>';
+    list.innerHTML = '<div class="tbm-tweet-bookmark-list-item"><div class="tbm-tweet-bookmark-list-item-text">foldername</div></div>';
 
     target.parentNode.appendChild(list);
+
+    removeAllTweetBookmarkIcons();
 
     event.preventDefault();
 }

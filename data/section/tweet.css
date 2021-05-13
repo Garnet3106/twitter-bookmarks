@@ -3,10 +3,11 @@ div.tbm-tweet-bookmark-icon {
     border-radius: 50%;
     cursor: pointer;
     display: inline-flex;
+    height: 34.75px;
     justify-content: center;
     margin-left: 15px;
-    padding: 10px;
     user-select: none;
+    width: 34.75px;
 }
 
 div.tbm-tweet-bookmark-icon:hover {
@@ -15,12 +16,8 @@ div.tbm-tweet-bookmark-icon:hover {
 
 div.tbm-tweet-bookmark-list {
     background-color: #15202b;
-    display: flex;
     flex-wrap: wrap;
-    position: absolute;
-    right: 0;
-    width: 150px;
-    z-index: 100000;
+    width: 300px;
 }
 
 div.tbm-tweet-bookmark-list-item {
