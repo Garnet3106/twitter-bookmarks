@@ -1,9 +1,7 @@
 chrome.tabs.query({
     lastFocusedWindow: true
 }, (tabs) => {
-    setTimeout(() => {
-        executeScripts(tabs[0].url);
-    }, 5000);
+    executeScripts(tabs[0].url);
 });
 
 chrome.tabs.onUpdated.addListener((tabID, info, tab) => {

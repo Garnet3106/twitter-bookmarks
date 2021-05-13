@@ -16,18 +16,27 @@ function tlPageLoaded() {
 function getTLSection() {
     return new Promise((resolve, reject) => {
         let sectionIntervalCount = 0;
-        const sectionIntervalLimit = 10;
+        const sectionIntervalLimit = 50;
 
         let sectionInterval = setInterval(() => {
             let sections = document.getElementsByTagName('section');
 
-            if(sections.length !== 0) {
+            if(sections.length > 2) {
                 clearInterval(sectionInterval);
                 resolve(sections[0]);
                 return;
+            } else {
+                let articles = document.getElementsByTagName('article');
+
+                if(articles.length > 0) {
+                    clearInterval(sectionInterval);
+                    resolve(sections[0]);
+                    return;
+                }
             }
 
             if(sectionIntervalCount === sectionIntervalLimit) {
+                console.log('notfound');
                 clearInterval(sectionInterval);
                 reject('null: section (timeout)');
                 return;

@@ -312,11 +312,11 @@ function getBookmarkSection() {
         const sectionIntervalLimit = 10;
 
         let sectionInterval = setInterval(() => {
-            let section = document.getElementsByTagName('section').item(0);
+            let sections = document.getElementsByTagName('section');
 
-            if(section !== null) {
+            if(sections.length > 2) {
                 clearInterval(sectionInterval);
-                resolve(section);
+                resolve(sections[0]);
                 return;
             }
 
